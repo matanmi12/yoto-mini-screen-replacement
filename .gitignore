@@ -1,0 +1,44 @@
+# --- Firmware images: NEVER commit ---------------------------------------
+# A full Yoto flash dump contains YOUR Wi-Fi credentials and device/account
+# token, and the firmware itself is Yoto's proprietary code. Do not commit any
+# of it. These patterns are intentionally broad.
+*.bin
+*.img
+*.hex
+*.dump
+*.dump.*
+*.part
+dumps/
+reference/
+
+# --- ESP-IDF build output -------------------------------------------------
+build/
+build_*/
+sdkconfig
+sdkconfig.old
+sdkconfig.ci
+managed_components/
+dependencies.lock
+*.map
+*.elf
+
+# --- Serial capture logs (can contain dumped bytes) -----------------------
+*.log
+
+# --- Editor / OS / local tooling -----------------------------------------
+.vscode/
+.idea/
+.cache/
+*.swp
+*~
+.DS_Store
+Thumbs.db
+
+# --- Local Claude / assistant state --------------------------------------
+.claude/
+
+# --- Python ---------------------------------------------------------------
+__pycache__/
+*.pyc
+.venv/
+venv/
