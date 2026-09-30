@@ -42,3 +42,12 @@ __pycache__/
 *.pyc
 .venv/
 venv/
+
+# Calibration working files (device screen photos, generated charts, per-experiment builds)
+*.jpg
+*.jpeg
+*.heic
+*.png
+charts/
+round1/
+*.manifest.json

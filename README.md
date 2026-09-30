@@ -13,6 +13,9 @@ small, reversible firmware patch fixes them.
   → [docs/DISPLAY_AND_COLORS.md](docs/DISPLAY_AND_COLORS.md)
 - **The how** — dump your own firmware, patch it, write it back:
   → [docs/FIRMWARE_DUMP_AND_PATCH.md](docs/FIRMWARE_DUMP_AND_PATCH.md)
+- **Colour calibration** — why a replacement panel looks warm, and the
+  gamma/VCOM tuning workflow:
+  → [docs/COLOR_CALIBRATION.md](docs/COLOR_CALIBRATION.md)
 
 ---
 
@@ -69,14 +72,21 @@ leaks, rotate the affected Wi-Fi password and re-provision the device.
 
 ```
 tools/
-  yoto_patch.py               patcher: MADCTL fix + image re-sign (Python 3, stdlib only)
-  yoto-flasher/               ESP32-S3 helper firmware to DUMP / WRITE the Yoto's flash
+  yoto_patch.py               patcher: MADCTL + inversion + injected ST7789 colour/gamma
+                              registers + full E0/E1 gamma curves + image re-sign (stdlib only)
+  yoto_write_checked.py       esptool write wrapper that refuses unless the flash reads 3.3 V
+  make_calibration_chart.py   generate the solid/gradient calibration charts (Pillow)
+  analyze_calibration_photo.py compare both panels from one photo (Pillow + numpy)
+  yoto-flasher/               ESP32-S3 helper firmware to DUMP / WRITE the flash (Windows .bat)
     main/main.c               esp-serial-flasher based read+write tool
     run_yoto_dump.bat         host-side dump orchestration (resume + SHA256)
     run_yoto_write.bat        host-side flash-write orchestration (MD5 verified)
+  s3-flasher/                 ESP32-S3 USB-UART bridge: esptool dump/write from macOS/Linux,
+                              automatic boot-mode reset (PlatformIO)
 docs/
   DISPLAY_AND_COLORS.md       panels, MADCTL/COLMOD, color order, MADCTL value table
   FIRMWARE_DUMP_AND_PATCH.md  dump-your-own + patch + write-back guide
+  COLOR_CALIBRATION.md        why a replacement panel looks dark, and the gamma-curve fix
 ```
 
 ---
@@ -109,10 +119,22 @@ the 240×240 panel. See [docs/DISPLAY_AND_COLORS.md](docs/DISPLAY_AND_COLORS.md)
 
 ## Status
 
-Reverse-engineered and applied against Yoto Mini firmware **v2.23.4**. The
-firmware offsets/signatures used by the patcher are specific to that version and
-are re-verified before every write, so the tool fails safely on any other
-version rather than writing blind.
+Reverse-engineered against Yoto Mini firmware **v2.23.4** and verified to apply
+unchanged to **v2.23.2** as well. The patcher locates every edit by a code
+signature (not a fixed offset or version number) and re-verifies it before each
+write, so it works on any build whose display-init code matches and fails safely
+— refusing rather than writing blind — on one whose code differs.
+
+Colour calibration is **done**: a replacement ST7789 otherwise runs its
+factory-default gamma, much darker in the midtones than the original panel, so
+the patcher injects full ST7789 `PVGAMCTRL`/`NVGAMCTRL` gamma curves (plus a
+couple of analog tweaks). One command applies the whole confirmed calibration:
+
+```bash
+python tools/yoto_patch.py dumps/yoto_dump.bin --experiment recommended --slots all
+```
+
+The how and why: [docs/COLOR_CALIBRATION.md](docs/COLOR_CALIBRATION.md).
 
 ## License
 
